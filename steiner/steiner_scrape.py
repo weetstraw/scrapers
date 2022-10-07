@@ -1,8 +1,6 @@
 # import Libraries
 import requests
 import os
-import shutil
-import urllib.request
 from bs4 import BeautifulSoup
 
 #urls array
@@ -17,7 +15,6 @@ base_url="http://www.rudolfsteineraudio.com/"
 new_dir = 1
 book_url = []
 
-
 response = requests.get( url )
 soup = BeautifulSoup( response.content, 'html.parser' )
 
@@ -28,12 +25,8 @@ links = soup.find_all('a')
 for link in links:
 
     if( '.html' in link.get( 'href' ) ):
-        i+=1
-    
 
         link = base_url+str( link.get( 'href' ) )
-        t=link.get_text()
-        print('text: '+t)
         #print("base: "+base_url)
         
         link=link.rsplit('/',1)[0]+"/"
@@ -41,28 +34,24 @@ for link in links:
 
         b = requests.get( link )
         soup = BeautifulSoup( b.content, 'html.parser' )
-        #soup = bs( urllib.request.urlopen( b.content ), "html.parser" )
 
         book_links = soup.find_all( 'a' )
 
-        for x in book_links:
-            print( x.string )
+        for a in book_links:
+            print( a.attrs )
 
         
         for book in book_links:
             
-            if( '.zip' in book.get( 'href') ):
-                zip_title=book.contents
-
             if( '.mp3' in book.get( 'href' ) ):
-                book_title = book.attrs
+
+                #book_title=link.book.get('text')
                 book_link=link+book.get('href')
-                print(book_title)
 
                 # Get response object
                 #book_mp3 = requests.get( book_link )
 
-                #print( "Downloading: "+book_title )
+                #print( "Downloading: "+book_link )
 
                 # Write it
                 #mp3 = open( book_title, 'wb' )
@@ -70,8 +59,7 @@ for link in links:
                 #mp3.close()
 
         
-        if( i == 1 ):
-            break
+        break
     break
 
     #Make Dir
