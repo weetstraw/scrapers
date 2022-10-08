@@ -1,6 +1,7 @@
 # import Libraries
 import requests
 import os
+import string
 import shutil
 from bs4 import BeautifulSoup
 
@@ -26,7 +27,8 @@ for link in links:
         book = BeautifulSoup( b.content, 'html.parser' )
         
         # Get page title
-        book_title = book.title.get_text()
+        book_title = book.title.get_text().lower()
+        
         #print( 'book title: '+str( book_title ) )
 
         # Make book directory
@@ -53,7 +55,12 @@ for link in links:
                 #print( "mp3 url: "+str( mp3_url ) )
 
                 mp3_text = book_link.get_text()
-                #print( "mp3 text: "+str(mp3_text) )
+                #mp3_text = textwrap.shorten( mp3_text, 70 )
+                mp3_text = mp3_text[:70].lower()
+                #mp3_text = clean( mp3_text, replace_with_punct="" )
+
+                
+                mp3_text = mp3_text.translate( str.maketrans( { key: None for key in string.punctuation } ) ) 
 
                 # Get response object
                 mp3_file = requests.get( mp3_url )
@@ -70,7 +77,7 @@ for link in links:
                 cur_dir = os.getcwd()
 
                 shutil.move( os.path.join( cur_dir,mp3_file_name ), book_title ) 
-        break
+
         print( str( book_title )+" done downloading!" )
 
 print( "~~~~~~~~~ THE SCRAPING HAS ENDED ~~~~~~~~~~~~" )
