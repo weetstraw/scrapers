@@ -1,24 +1,17 @@
 # import Libraries
 import requests
 import os
+import shutil
 from bs4 import BeautifulSoup
 
-#urls array
 url = 'http://www.rudolfsteineraudio.com/lecturesimagebased.html'
 
-print( "**********************" )
-print( "THE SCRAPING HAS BEGUN" )
-print( "**********************" )
+print( "~~~~~~~~~ THE SCRAPING HAS BEGUN ~~~~~~~~~~~~" )
 
-i = 0
 base_url="http://www.rudolfsteineraudio.com/"
-new_dir = 1
-book_url = []
 
 response = requests.get( url )
 soup = BeautifulSoup( response.content, 'html.parser' )
-
-#soup = bs( urllib.request.urlopen( url ), "html.parser" )
 
 links = soup.find_all('a')
 
@@ -26,84 +19,59 @@ for link in links:
 
     if( '.html' in link.get( 'href' ) ):
 
-        link = base_url+str( link.get( 'href' ) )
-        #print("base: "+base_url)
+        book_url = base_url+str( link.get( 'href' ) )
+        #book_url_split = book_url.rsplit('/',1)[0]+"/"
+
+        b = requests.get( book_url)
+        book = BeautifulSoup( b.content, 'html.parser' )
         
-        link=link.rsplit('/',1)[0]+"/"
-        #print(link)
+        # Get page title
+        book_title = book.title.get_text()
+        #print( 'book title: '+str( book_title ) )
 
-        b = requests.get( link )
-        soup = BeautifulSoup( b.content, 'html.parser' )
+        # Make book directory
+        is_dir = os.path.isdir( book_title )
 
-        book_links = soup.find_all( 'a' )
+        if is_dir:
+            shutil.rmtree( book_title )
+            print( "Removed existing directory" )
 
-        for a in book_links:
-            print( a.attrs )
+        os.mkdir( book_title )
 
-        
-        for book in book_links:
-            
-            if( '.mp3' in book.get( 'href' ) ):
+        # Get all links on page
+        book_links = book.find_all( 'a' )
 
-                #book_title=link.book.get('text')
-                book_link=link+book.get('href')
+        # Now just the mp3 links 
+        for book_link in book_links:
+
+            if( '.mp3' in book_link.get( 'href' ) ):
+
+                book_url_base = book_url.rsplit('/',1)[0]+"/"
+
+                mp3_link = book_link.get( 'href' )
+                mp3_url = book_url_base+mp3_link
+                #print( "mp3 url: "+str( mp3_url ) )
+
+                mp3_text = book_link.get_text()
+                #print( "mp3 text: "+str(mp3_text) )
 
                 # Get response object
-                #book_mp3 = requests.get( book_link )
+                mp3_file = requests.get( mp3_url )
 
-                #print( "Downloading: "+book_link )
+                print( "Downloading: "+str(mp3_text) )
 
                 # Write it
-                #mp3 = open( book_title, 'wb' )
-                #mp3.write( book_mp3.content )
-                #mp3.close()
+                mp3_file_name = mp3_text+'.mp3'
+                mp3 = open( mp3_file_name, 'wb' )
+                mp3.write( mp3_file.content )
+                mp3.close()
 
-        
+                # Move MP#
+                cur_dir = os.getcwd()
+
+                shutil.move( os.path.join( cur_dir,mp3_file_name ), book_title ) 
         break
-    break
+        print( str( book_title )+" done downloading!" )
 
-    #Make Dir
-    if url[1]:
-        dir_name = url[1] 
-    else:
-        dir_name = "PDFs "+str(new_dir)
-        new_dir+=1
-
-    is_path = os.path.isdir( dir_name )
-
-    if is_path:
-        shutil.rmtree( dir_name )
-        print( "Removed existing version of: "+dir_name )
-
-    os.mkdir(dir_name)
-
-    for link in links:
-        if( '.pdf' in link.get( 'href', [] ) ):
-            i += 1
-
-            pdf_name = os.path.basename( link.get('href') ) 
-
-
-            print( "Downloading file: ", dir_name+"/"+pdf_name )
-
-            # Get response object
-            response = requests.get( link.get('href') )
-
-            # Write it
-            pdf = open( pdf_name, 'wb' )
-            pdf.write( response.content )
-            pdf.close()
-
-
-            # More PDF
-            cur_dir = os.getcwd()
-        
-            shutil.move( os.path.join( os.getcwd(), pdf_name), dir_name )
-            
-            #if( i == 3 ):
-            #    break
-
-print( "**********************" )
-print( "THE SCRAPING HAS ENDED" )
-print( str(i)+" Book Downloaded" )
+print( "~~~~~~~~~ THE SCRAPING HAS ENDED ~~~~~~~~~~~~" )
 
