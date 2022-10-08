@@ -34,7 +34,7 @@ for link in links:
         # Make book directory
         is_dir = os.path.isdir( book_title )
 
-        if is_dir:
+        if( is_dir ):
             shutil.rmtree( book_title )
             print( "Removed existing directory" )
 
@@ -55,6 +55,7 @@ for link in links:
                 #print( "mp3 url: "+str( mp3_url ) )
 
                 mp3_text = book_link.get_text()
+                mp3_text = " ".join( mp3_text.split() )
                 #mp3_text = textwrap.shorten( mp3_text, 70 )
                 mp3_text = mp3_text[:70].lower()
                 #mp3_text = clean( mp3_text, replace_with_punct="" )
@@ -69,6 +70,13 @@ for link in links:
 
                 # Write it
                 mp3_file_name = mp3_text+'.mp3'
+
+                is_file = os.path.isfile( book_title+'/'+mp3_file_name )
+
+                if( is_file ):
+                    print( "duplicate file!" )
+                    mp3_file_name = mp3_text+' (1).mp3'
+
                 mp3 = open( mp3_file_name, 'wb' )
                 mp3.write( mp3_file.content )
                 mp3.close()
@@ -76,7 +84,7 @@ for link in links:
                 # Move MP#
                 cur_dir = os.getcwd()
 
-                shutil.move( os.path.join( cur_dir,mp3_file_name ), book_title ) 
+                shutil.move( os.path.join( cur_dir, mp3_file_name ), book_title ) 
 
         print( str( book_title )+" done downloading!" )
 
