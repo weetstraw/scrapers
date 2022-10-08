@@ -27,7 +27,7 @@ for link in links:
         book = BeautifulSoup( b.content, 'html.parser' )
         
         # Get page title
-        book_title = book.title.get_text().lower()
+        book_title = book.title.get_text().lower()[:70]
         
         #print( 'book title: '+str( book_title ) )
 
@@ -35,58 +35,60 @@ for link in links:
         is_dir = os.path.isdir( book_title )
 
         if( is_dir ):
-            shutil.rmtree( book_title )
-            print( "Removed existing directory" )
+            #shutil.rmtree( book_title )
+            #print( "Removed existing directory" )
+            print( "already here!" )
+        else:
 
-        os.mkdir( book_title )
+            os.mkdir( book_title )
 
-        # Get all links on page
-        book_links = book.find_all( 'a' )
+            # Get all links on page
+            book_links = book.find_all( 'a' )
 
-        # Now just the mp3 links 
-        for book_link in book_links:
+            # Now just the mp3 links 
+            for book_link in book_links:
 
-            if( '.mp3' in book_link.get( 'href' ) ):
+                if( '.mp3' in book_link.get( 'href' ) ):
 
-                book_url_base = book_url.rsplit('/',1)[0]+"/"
+                    book_url_base = book_url.rsplit('/',1)[0]+"/"
 
-                mp3_link = book_link.get( 'href' )
-                mp3_url = book_url_base+mp3_link
-                #print( "mp3 url: "+str( mp3_url ) )
+                    mp3_link = book_link.get( 'href' )
+                    mp3_url = book_url_base+mp3_link
+                    #print( "mp3 url: "+str( mp3_url ) )
 
-                mp3_text = book_link.get_text()
-                mp3_text = " ".join( mp3_text.split() )
-                #mp3_text = textwrap.shorten( mp3_text, 70 )
-                mp3_text = mp3_text[:70].lower()
-                #mp3_text = clean( mp3_text, replace_with_punct="" )
+                    mp3_text = book_link.get_text()
+                    mp3_text = " ".join( mp3_text.split() )
+                    #mp3_text = textwrap.shorten( mp3_text, 70 )
+                    mp3_text = mp3_text[:70].lower()
+                    #mp3_text = clean( mp3_text, replace_with_punct="" )
 
-                
-                mp3_text = mp3_text.translate( str.maketrans( { key: None for key in string.punctuation } ) ) 
+                    
+                    mp3_text = mp3_text.translate( str.maketrans( { key: None for key in string.punctuation } ) ) 
 
-                # Get response object
-                mp3_file = requests.get( mp3_url )
+                    # Get response object
+                    mp3_file = requests.get( mp3_url )
 
-                print( "Downloading: "+str(mp3_text) )
+                    print( "Downloading: "+str(mp3_text) )
 
-                # Write it
-                mp3_file_name = mp3_text+'.mp3'
+                    # Write it
+                    mp3_file_name = mp3_text+'.mp3'
 
-                is_file = os.path.isfile( book_title+'/'+mp3_file_name )
+                    is_file = os.path.isfile( book_title+'/'+mp3_file_name )
 
-                if( is_file ):
-                    print( "duplicate file!" )
-                    mp3_file_name = mp3_text+' (1).mp3'
+                    if( is_file ):
+                        print( "duplicate file!" )
+                        mp3_file_name = mp3_text+' (1).mp3'
 
-                mp3 = open( mp3_file_name, 'wb' )
-                mp3.write( mp3_file.content )
-                mp3.close()
+                    mp3 = open( mp3_file_name, 'wb' )
+                    mp3.write( mp3_file.content )
+                    mp3.close()
 
-                # Move MP#
-                cur_dir = os.getcwd()
+                    # Move MP#
+                    cur_dir = os.getcwd()
 
-                shutil.move( os.path.join( cur_dir, mp3_file_name ), book_title ) 
+                    shutil.move( os.path.join( cur_dir, mp3_file_name ), book_title ) 
 
-        print( str( book_title )+" done downloading!" )
+            print( str( book_title )+" done downloading!" )
 
 print( "~~~~~~~~~ THE SCRAPING HAS ENDED ~~~~~~~~~~~~" )
 
